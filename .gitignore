@@ -50,7 +50,6 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
-requirements-tmp.txt
 # Translations
 *.mo
 *.pot
@@ -97,6 +96,7 @@ __pypackages__/
 # Celery stuff
 celerybeat-schedule
 celerybeat.pid
+requirements-tmp.txt
 
 # SageMath parsed files
 *.sage.py
