@@ -34,7 +34,6 @@
   <component name="ChangeListManager">
     <list default="true" id="986cdc32-bfbd-4077-b84c-bdcd2d088962" name="Default Changelist" comment="update-july2">
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -118,9 +117,9 @@
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
     <state x="511" y="232" width="1022" height="737" key="SettingsEditor/1920.0.1920.1080/0.27.1920.1053@0.27.1920.1053" timestamp="1594055625351" />
-    <state x="555" y="276" width="800" height="535" key="Vcs.Push.Dialog.v2" timestamp="1594056470004">
+    <state x="555" y="276" width="800" height="535" key="Vcs.Push.Dialog.v2" timestamp="1594056557960">
       <screen x="0" y="27" width="1920" height="1053" />
     </state>
-    <state x="555" y="276" width="800" height="535" key="Vcs.Push.Dialog.v2/1920.0.1920.1080/0.27.1920.1053@0.27.1920.1053" timestamp="1594056470004" />
+    <state x="555" y="276" width="800" height="535" key="Vcs.Push.Dialog.v2/1920.0.1920.1080/0.27.1920.1053@0.27.1920.1053" timestamp="1594056557960" />
   </component>
 </project>
