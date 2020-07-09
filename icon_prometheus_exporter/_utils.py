@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from time import time
+from icon_prometheus_exporter import config
 
 
 class PeriodicTask(ABC):
