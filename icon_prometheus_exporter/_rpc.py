@@ -49,6 +49,7 @@ class iconRPC:
 
     def node_get_request(self,IP_port,name):
         node_IP=IP_port[:IP_port.rfind(":")]
+        # print ("pass",node_IP)
         try:
             result = requests.get('http://'+node_IP+':9000/api/v1/status/peer', timeout=0.3)
             self._counter_rpc_node_reply_status.labels(node_IP,name[0],'ok').inc()
@@ -69,7 +70,8 @@ class iconRPC:
         if result_json.get( 'error' ):
             # print("status error")
             self._counter_rpc_node_reply_status.labels(node_IP,name[0],'Error').inc()
-            return
+            return None
         if result is None:
             raise iconRPCError()
+            return None
         return result_json
