@@ -19,7 +19,7 @@ you can use the [prometheus](https://github.com/ghalwash/terransible-aws-ec2-pro
 
 ## sample output:
 ----------------
-![GitHub Logo](https://github.com/ghalwash/icon-prometheus-exporter/blob/master/Screenshot.png)
+![GitHub Logo](https://github.com/ghalwash/icon-prometheus-exporter/blob/master/img/Screenshot.png)
 
 
 
