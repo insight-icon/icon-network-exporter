@@ -35,7 +35,7 @@ class prepsUpdater(ExporterPeriodicTask):
                                               ['p2pEndpoint','name'])
         self._gauge_preps_discovery_node_count = Gauge('icon_preps_nodeCount', '------the Count of nodes in network')
         self._gauge_node_reference_blockHeight = Gauge('icon_node_reference__blockHeight', '------the blockHeight data from icon nodes',
-                                              ['nodeID','name','rank'])
+                                              ['nodeID','name'])
         self._nodes_list = {} # pairs of node ID and a list of block_height,epoch_height,total_tx,peer_count
     def _perform_internal(self):
         print("------------")
@@ -51,7 +51,7 @@ class prepsUpdater(ExporterPeriodicTask):
             # print (IP_address)
             # print()
             self._nodes_list.update({IP_address:[node["name"],self._nodeRank]})
-            self._gauge_preps_discovery_blockHeight.labels(IP_address[:IP_address.rfind(":")],node["name"],self._nodeRank).set(
+            self._gauge_preps_discovery_blockHeight.labels(IP_address[:IP_address.rfind(":")],node["name"]).set(
                 int(node["blockHeight"], 16))
             self._gauge_preps_discovery_node_rank.labels(IP_address[:IP_address.rfind(":")],node["name"]).set(
                 self._nodeRank)
