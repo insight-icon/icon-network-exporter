@@ -31,13 +31,15 @@ class prepsUpdater(ExporterPeriodicTask):
         self.request_data = request_data
         self._gauge_preps_discovery_blockHeight = Gauge('icon_preps_blockHeight', '------the hight of block chain',
                                               ['p2pEndpoint','name','rank'])
+        self._gauge_preps_discovery_node_rank = Gauge('icon_preps_node_rank', '------the hight of block chain',
+                                              ['p2pEndpoint','name'])
         self._gauge_preps_discovery_node_count = Gauge('icon_preps_nodeCount', '------the Count of nodes in network')
         self._gauge_node_reference_blockHeight = Gauge('icon_node_reference__blockHeight', '------the blockHeight data from icon nodes',
-                                              ['nodeID','name','rank','time'])
+                                              ['nodeID','name','rank'])
         self._nodes_list = {} # pairs of node ID and a list of block_height,epoch_height,total_tx,peer_count
     def _perform_internal(self):
         print("------------")
-        print( "internal Performer" )
+        print( "internal Performer")
 
         # scrap the all nodes informations from the discovery Node
         self._allpreps = (self._rpc.discovery_node_post_request(self.request_data)["result"]["preps"])
@@ -51,6 +53,8 @@ class prepsUpdater(ExporterPeriodicTask):
             self._nodes_list.update({IP_address:[node["name"],self._nodeRank]})
             self._gauge_preps_discovery_blockHeight.labels(IP_address[:IP_address.rfind(":")],node["name"],self._nodeRank).set(
                 int(node["blockHeight"], 16))
+            self._gauge_preps_discovery_node_rank.labels(IP_address[:IP_address.rfind(":")],node["name"]).set(
+                self._nodeRank)
             self._nodeRank += 1
         self._gauge_preps_discovery_node_count.set(self._nodeRank-1)
         # print (self._nodes_list)
@@ -65,7 +69,7 @@ class prepsUpdater(ExporterPeriodicTask):
             if result != None:
                 node_IP=IP[:IP.rfind(":")]
                 # print (node_IP)
-                self._gauge_node_reference_blockHeight.labels(node_IP,value[0],value[1],datetime.now()).set(result["block_height"])
+                self._gauge_node_reference_blockHeight.labels(node_IP,value[0],value[1]).set(result["block_height"])
             #     # self._gauge_node_reference_total_tx.labels(node_IP,self._nodes_list[node_IP]).set(result["total_tx"])
         # print(c)
 
