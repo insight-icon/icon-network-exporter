@@ -1,24 +1,28 @@
-## ICON - exporter agent for icon blockchain:
-----------------
+## icon-network-exporter
 
-This is a python agent that discover nodes and extracts metric provided through each node's rpc. Clone and run the python agent on your server and use port 6100 to get your prometheus server to scrap the date from this agent.
+This is a python agent that discovers nodes and extracts metrics provided through each node's REST API. Clone and run the python agent on your server and use port 6100 to get your prometheus server to scrape the metrics from this agent.
 
 To install the icon-prometheus-exporter package.
 
-.. code-block:: bash
-sudo apt-get install python-pip python-dev build-essential
-sudo pip install virtualenv
-sudo pip install  virtaulenvwrapper
+### Manually
+```bash
+cd icon-prometheus-exporter
+python setup.py install
+```
 
-mkdir ~/.virtualenvs
+### Docker
+```bash
+docker build -t insightinfrastructure/icon-network-exporter .
+docker run -it insightinfrastructure/icon-network-exporter 
+```
 
-    cd icon-prometheus-exporter
-    python setup.py install
+To verify
+```bash
+curl localhost:6100
+```
 
-you can use the [prometheus](https://github.com/ghalwash/terransible-aws-ec2-prometheus) to show the extracted data in grafana dashboards
+## Sample Output
 
-## sample output:
-----------------
 ![GitHub Logo](https://github.com/ghalwash/icon-prometheus-exporter/blob/master/img/Screenshot.png)
 
 
