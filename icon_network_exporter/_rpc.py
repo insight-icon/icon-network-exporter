@@ -3,7 +3,7 @@ import json
 from requests.exceptions import RequestException
 import requests
 from prometheus_client import Counter
-from icon_prometheus_exporter import config
+from icon_network_exporter import config
 
 
 class iconRPCError( RuntimeError ):

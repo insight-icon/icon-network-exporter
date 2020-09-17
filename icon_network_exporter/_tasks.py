@@ -1,9 +1,9 @@
 from abc import abstractmethod
 from datetime import datetime
 
-from icon_prometheus_exporter._utils import PeriodicTask, check
+from icon_network_exporter._utils import PeriodicTask, check
 from prometheus_client import Gauge
-from icon_prometheus_exporter import config
+from icon_network_exporter import config
 
 
 class ExporterPeriodicTask(PeriodicTask):

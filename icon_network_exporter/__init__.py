@@ -9,16 +9,16 @@ import argparse
 
 
 
-from icon_prometheus_exporter import _tasks
-from icon_prometheus_exporter._tasks import prepsUpdater
+from icon_network_exporter import _tasks
+from icon_network_exporter._tasks import prepsUpdater
 from prometheus_client import start_http_server
-from icon_prometheus_exporter import config
+from icon_network_exporter import config
 if __name__ == '__main__':
     # have to make sure we'll be able to find submodules
     sys.path.append( os.path.realpath( os.path.dirname( os.path.dirname( __file__ ) ) ) )
 
-from icon_prometheus_exporter._utils import check
-from icon_prometheus_exporter._rpc import iconRPC, iconRPCError
+from icon_network_exporter._utils import check
+from icon_network_exporter._rpc import iconRPC, iconRPCError
 
 
 class Exporter:
