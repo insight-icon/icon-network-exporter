@@ -11,9 +11,16 @@ python setup.py install
 ```
 
 ### Docker
+
+Pull container
 ```bash
-docker build -t insightinfrastructure/icon-network-exporter .
-docker run -it insightinfrastructure/icon-network-exporter 
+docker run -it insightinfrastructure/icon-network-exporter:v0.1.0
+```
+
+Build from source
+```bash
+docker build -t icon-network-exporter .
+docker run -it icon-network-exporter 
 ```
 
 To verify
