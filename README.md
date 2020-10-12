@@ -14,7 +14,7 @@ python setup.py install
 
 Pull container
 ```bash
-docker run -it insightinfrastructure/icon-network-exporter:v0.1.0
+docker run -p 6100:6100 -it insightinfrastructure/icon-network-exporter:v0.1.0
 ```
 
 Build from source

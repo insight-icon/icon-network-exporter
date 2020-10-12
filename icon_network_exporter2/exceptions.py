@@ -1,0 +1,2 @@
+class IconRPCError(RuntimeError):
+    pass
