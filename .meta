@@ -1,0 +1,5 @@
+{
+  "projects": {
+    "polkadot-prometheus-exporter": "https://github.com/mixbytes/polkadot-prometheus-exporter"
+  }
+}

@@ -17,7 +17,9 @@ setup(
     },
     install_requires=[
         'requests>=2,<3',
-        'prometheus_client'
+        'prometheus_client',
+        'pydantic',
+        'aiohttp'
     ],
     include_package_data=True,
     author="Haitham Ghalwash",
