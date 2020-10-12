@@ -84,8 +84,9 @@ class Exporter:
 
     def _run_updaters(self):
         self.get_prep_list()
-        # self.get_reference()
+        self.get_reference()
         self.scrape_metrics()
+        self.summarize_metrics()
 
     def get_prep_list(self):
         if not self.prep_list or self.prep_list_request_counter % self.config.refresh_prep_list_count == 0:
@@ -97,6 +98,9 @@ class Exporter:
                 self.gauge_prep_node_rank.labels(v['name'], v['address'], i)
             self.prep_list_request_counter += 1
 
+    def get_reference(self):
+        pass
+
     def scrape_metrics(self):
         resp = asyncio.run(get_prep_list_async(self.prep_list))
         for i in resp:
@@ -104,6 +108,8 @@ class Exporter:
                 name = next(item for item in self.prep_list if item['apiEndpoint'] == i['apiEndpoint'])['name']
                 self.gauge_prep_block_height.labels(name, i['apiEndpoint'], i['block_height'])
 
+    def summarize_metrics(self):
+        pass
 
 def main():
     config = Config()
