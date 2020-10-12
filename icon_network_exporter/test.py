@@ -7,22 +7,11 @@ import os
 # Create a metric to track time spent and requests made.
 # REQUEST_TIME = Summary('', '')
 
-# print (sys.path.append(os.path.realpath(os.path.dirname(os.path.dirname(__file__)))))
-print ((os.path.realpath(os.path.dirname(os.path.dirname(__file__)))))
-
 # Decorate function with metric.
 # @REQUEST_TIME.time()
 def process_request(t):
     """A dummy function that takes some time."""
     time.sleep(t)
-
-
-if __name__ == '__main__':
-    # Start up the server to expose the metrics.
-    start_http_server(8000)
-    # Generate some requests.
-    while True:
-        process_request(random.random())
 
 # from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily, REGISTRY
 
