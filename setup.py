@@ -22,8 +22,8 @@ setup(
         'aiohttp'
     ],
     include_package_data=True,
-    author="Haitham Ghalwash",
-    author_email="h.ghalwash@gmail.com",
+    author="Rob Cannon",
+    author_email="rob.cannon@insightdatascience.com",
     url=url,
     download_url="{}/tarball/{}".format(url, version),
     license="MIT"

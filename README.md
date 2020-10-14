@@ -40,10 +40,6 @@ To verify
 curl localhost:6100
 ```
 
-## Sample Output
-
-![GitHub Logo](https://github.com/ghalwash/icon-prometheus-exporter/blob/master/img/Screenshot.png)
-
 ## Credit
 
-- Special thanks to Haitham Ghalwash who built the first versio of this module for his Insight fellowship. 
+- Special thanks to Haitham Ghalwash who built the first version of this module for his Insight fellowship. 

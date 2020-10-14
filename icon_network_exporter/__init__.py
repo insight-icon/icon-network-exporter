@@ -88,7 +88,7 @@ class Exporter:
                                     'Total number of transactions')
 
         self.gauge_total_active_main_preps = Gauge('icon_total_active_main_preps',
-                                                   'Total number of transactions')
+                                                   'Total number of active nodes above rank 22')
 
         self.gauge_total_inactive_sub_preps = Gauge('icon_total_active_sub_preps',
                                                      'Total number of inactive validators - (nodes off / in blocksync)')
