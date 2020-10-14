@@ -43,7 +43,7 @@ RPC_URL_MAP = {
     }
 }
 
-STATUS_MAP = {
+STATE_MAP = {
     'BlockGenerate': 0,
     'Vote': 1,
     'Watch': 2,
@@ -78,13 +78,11 @@ class Exporter:
         self.gauge_prep_node_block_time = Gauge('icon_prep_block_time', 'Time in seconds per block for a node',
                                                 ['name'])
 
-        self.gauge_node_reference_block_height = Gauge('icon_prep_reference__block_height',
-                                                       'Block height of reference node',
-                                                       ['name'])
+        self.gauge_node_reference_block_height = Gauge('icon_prep_reference_block_height',
+                                                       'Block height of reference node')
 
-        self.gauge_node_reference_block_time = Gauge('icon_node_reference__block_time',
-                                                     'Time in seconds per block',
-                                                     ['name', 'address'])
+        self.gauge_node_reference_block_time = Gauge('icon_prep_reference_block_time',
+                                                     'Time in seconds per block')
 
         self.gauge_total_tx = Gauge('icon_total_tx',
                                     'Total number of transactions')
@@ -92,7 +90,7 @@ class Exporter:
         self.gauge_total_active_main_preps = Gauge('icon_total_active_main_preps',
                                                    'Total number of transactions')
 
-        self.gauge_total_inactive_validators = Gauge('icon_total_inactive_validators',
+        self.gauge_total_inactive_sub_preps = Gauge('icon_total_active_sub_preps',
                                                      'Total number of inactive validators - (nodes off / in blocksync)')
 
         self.prep_list: list = []
@@ -127,7 +125,7 @@ class Exporter:
         print(f"Iteration #{self.prep_list_request_counter}")
         self.get_prep_list()
         self.scrape_metrics()
-        # self.get_active_preps()
+        self.get_active_preps()
         self.get_reference()
         self.summarize_metrics()
 
@@ -153,17 +151,34 @@ class Exporter:
             if i:
                 name = next(item for item in self.prep_list if item['apiEndpoint'] == i['apiEndpoint'])['name']
                 self.gauge_prep_block_height.labels(name).set(i['block_height'])
-                self.gauge_prep_status.labels(name).set(STATUS_MAP[i['state']])
+                self.gauge_prep_status.labels(name).set(STATE_MAP[i['state']])
 
+    def get_active_preps(self):
+        active_main_preps = 0
+        inactive_sub_preps = 0
+        for prep in range(0, 99):
+            state = None
+            for i, v in enumerate(self.resp_non_null[0]):
+                if self.prep_list[prep]['apiEndpoint'] == self.resp_non_null[0][i]['apiEndpoint']:
+                    state = self.resp_non_null[0][i]['state']
+                    break
+            # resp_lookup = next(item for item in self.resp_non_null[0] if item['apiEndpoint'] == self.prep_list[i]['apiEndpoint'])
+            # state = resp_lookup['state'] if 'state' in resp_lookup else None
+            if state:
+                if STATE_MAP[state] < 2 and prep < 22:
+                    active_main_preps += 1
+                if STATE_MAP[state] < 3 and prep >= 22:
+                    inactive_sub_preps += 1
 
-
+        self.gauge_total_active_main_preps.set(active_main_preps)
+        self.gauge_total_inactive_sub_preps.set(inactive_sub_preps)
 
     def get_reference(self):
         # Get reference
         highest_block, self.reference_node_api_endpoint = get_highest_block(self.prep_list, self.resp_non_null[0])
-        reference_node_name = next(item for item in self.resp_non_null[0] if item['apiEndpoint'] == self.reference_node_api_endpoint)[
-            'apiEndpoint']
-        self.gauge_node_reference_block_height.labels(reference_node_name).set(highest_block)
+        # reference_node_name = next(item for item in self.resp_non_null[0] if item['apiEndpoint'] == self.reference_node_api_endpoint)[
+        #     'apiEndpoint']
+        self.gauge_node_reference_block_height.set(highest_block)
 
         # Get total TX
         self.gauge_total_tx.set(
@@ -193,8 +208,8 @@ class Exporter:
 
                         self.gauge_prep_node_block_time.labels(prep_data['name']).set(block_time)
                         if self.resp_non_null[0][i]['apiEndpoint'] == self.reference_node_api_endpoint:
-                            self.gauge_node_reference_block_time.labels(prep_data['name'], prep_data['address']).set(
-                                block_time)
+                            # prep_data['name'], prep_data['address']
+                            self.gauge_node_reference_block_time.set(block_time)
 
 
 def main():
