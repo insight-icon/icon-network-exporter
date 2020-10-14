@@ -2,39 +2,58 @@
 import aiohttp
 import asyncio
 import json
+from datetime import datetime
+from prometheus_client import Counter
 
-async def get(url, timeout: int = 2):
+async def get(url, name, timeout: int = 2):
     try:
         timeout = aiohttp.ClientTimeout(total=timeout)
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.get(url=url) as response:
                 resp = await response.read()
                 resp = json.loads(resp)
+
                 # Insert this so that we can look it up later
                 resp.update({'apiEndpoint': url})
-                print("Successfully got url {} with response of length {}.".format(url, len(resp)))
+                resp.update({'timestamp': datetime.now()})
+
+                # print("Successfully got url {} with response of length {}.".format(url, len(resp)))
                 return resp
     except Exception as e:
-        print("Unable to get url {} due to {}.".format(url, e.__class__))
+        pass
+        # print("Unable to get url {} due to {}.".format(url, e.__class__))
+        # c = Counter('icon_prep_dropped_request',
+        #       'Node ', )
+        # c.inc()
 
 
 async def get_prep_list_async(prep_list: list, timeout: int = 2):
-    resp = await asyncio.gather(*[get(v['apiEndpoint'], timeout) for i, v in enumerate(prep_list)])
+    resp = await asyncio.gather(*[get(v['apiEndpoint'], v['name'], timeout) for i, v in enumerate(prep_list)])
     return resp
 
 
 def get_highest_block(prep_list: list, responses: list) -> (int, str):
     highest_block = 0
     reference_node_api_endpoint = ''
+
+    # block_height = next(item for item in responses if item['apiEndpoint'] == v['apiEndpoint'])['block_height']
     for i, v in enumerate(prep_list[0:5]):
-        try:
-            block_height = next(item for item in responses if item['apiEndpoint'] == v['apiEndpoint'])['block_height']
-            if block_height >= highest_block:
-                highest_block = block_height
-                reference_node_api_endpoint = v['apiEndpoint']
-        except ValueError:
-            print("Reference node offline")
+        for r in responses:
+            if r['apiEndpoint'] == v['apiEndpoint']:
+                if r['block_height'] > highest_block:
+                    highest_block = r['block_height']
+                    reference_node_api_endpoint = v['apiEndpoint']
+
+    # This might not be a good idea but a fallback unless there is
+    if highest_block == 0:
+        highest_block, reference_node_api_endpoint = get_highest_block(prep_list, responses)
+
     return highest_block, reference_node_api_endpoint
+
+
+# def evaluate_state(state: str) -> int:
+
+
 
 # def get_total_tx(responses: list, reference_node_api_endpoint: str) -> int:
 #     return
