@@ -9,6 +9,7 @@ async def get(url, name, timeout: int = 2):
     try:
         timeout = aiohttp.ClientTimeout(total=timeout)
         async with aiohttp.ClientSession(timeout=timeout) as session:
+            request_start = datetime.now()
             async with session.get(url=url) as response:
                 resp = await response.read()
                 resp = json.loads(resp)
@@ -16,6 +17,7 @@ async def get(url, name, timeout: int = 2):
                 # Insert this so that we can look it up later
                 resp.update({'apiEndpoint': url})
                 resp.update({'timestamp': datetime.now()})
+                resp.update({'latency': (datetime.now() - request_start).total_seconds()*1000})
 
                 # print("Successfully got url {} with response of length {}.".format(url, len(resp)))
                 return resp

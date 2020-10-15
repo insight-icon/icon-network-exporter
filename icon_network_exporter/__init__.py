@@ -67,15 +67,18 @@ class Exporter:
         self.last_processed_block_num = None
         self.last_processed_block_hash = None
 
-        self.gauge_prep_block_height = Gauge('icon_prep_block_height',
+        self.gauge_prep_node_block_height = Gauge('icon_prep_node_block_height',
                                              'Node block height',
-                                             ['name'])
-        self.gauge_prep_status = Gauge('icon_prep_status', 'Number to indicate node status - ie Vote=1, Watch=2',
-                                       ['name'])
+                                                  ['name'])
+        self.gauge_prep_node_status = Gauge('icon_prep_node_status', 'Number to indicate node status - ie Vote=1, Watch=2',
+                                            ['name'])
 
         self.gauge_prep_node_rank = Gauge('icon_prep_node_rank', 'Rank of the node', ['name', 'address'])
 
-        self.gauge_prep_node_block_time = Gauge('icon_prep_block_time', 'Time in seconds per block for a node',
+        self.gauge_prep_node_block_time = Gauge('icon_prep_node_block_time', 'Time in seconds per block for a node',
+                                                ['name'])
+
+        self.gauge_prep_node_latency = Gauge('gauge_prep_node_latency', 'Time in seconds per for get request to node',
                                                 ['name'])
 
         self.gauge_node_reference_block_height = Gauge('icon_prep_reference_block_height',
@@ -150,8 +153,10 @@ class Exporter:
         for i in self.resp_non_null[0]:
             if i:
                 name = next(item for item in self.prep_list if item['apiEndpoint'] == i['apiEndpoint'])['name']
-                self.gauge_prep_block_height.labels(name).set(i['block_height'])
-                self.gauge_prep_status.labels(name).set(STATE_MAP[i['state']])
+                self.gauge_prep_node_block_height.labels(name).set(i['block_height'])
+                self.gauge_prep_node_latency.labels(name).set(i['latency'])
+                self.gauge_prep_node_status.labels(name).set(STATE_MAP[i['state']])
+
 
     def get_active_preps(self):
         active_main_preps = 0
