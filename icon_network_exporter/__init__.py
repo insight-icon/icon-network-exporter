@@ -13,7 +13,7 @@ from time import sleep, time
 
 from icon_network_exporter.config import Config
 from icon_network_exporter.exceptions import IconRPCError
-from icon_network_exporter.utils import get_prep_list_async, get_highest_block
+from icon_network_exporter.utils import get_prep_list_async, get_highest_block, get_rpc_attributes
 
 GET_PREPS_RPC = {
     "jsonrpc": "2.0",
@@ -104,6 +104,7 @@ class Exporter:
         self.prep_list_request_counter: int = 0
         self.resp: List[List] = []
         self.resp_non_null: List[List] = []
+        self.reference_list: List[List] = []
         print(f"Running on {self.config.network_name} network")
 
     def serve_forever(self):
@@ -179,8 +180,8 @@ class Exporter:
                     active_sub_preps += 1
 
         self.gauge_total_active_main_preps.set(active_main_preps)
-        self.gauge_total_inactive_sub_preps.set(78 - active_sub_preps)
         self.gauge_total_active_sub_preps.set(active_sub_preps)
+        self.gauge_total_inactive_sub_preps.set(78 - active_sub_preps)
 
     def get_reference(self):
         # Get reference
@@ -189,10 +190,14 @@ class Exporter:
         #     'apiEndpoint']
         self.gauge_prep_reference_block_height.set(highest_block)
 
+        # self.reference_list.insert(0, get_rpc_attributes())
+        # if len(self.reference_list) > self.config.num_data_points_retentation:
+        #     self.reference_list.pop()
+
+        total_tx = next(item for item in self.resp_non_null[0] if item['apiEndpoint'] == self.reference_node_api_endpoint)['total_tx']
         # Get total TX
-        self.gauge_total_tx.set(
-            next(item for item in self.resp_non_null[0] if item['apiEndpoint'] == self.reference_node_api_endpoint)[
-                'total_tx'])
+        self.gauge_total_tx.set(total_tx)
+
 
     def summarize_metrics(self):
         if len(self.resp_non_null) == self.config.num_data_points_retentation:
@@ -210,7 +215,8 @@ class Exporter:
                 if previous_block:
                     num_blocks = current_block - previous_block
                     if num_blocks > 0:
-                        block_time = (self.config.poll_interval * self.config.num_data_points_retentation) / num_blocks
+                        # Adding half a block to account for mid block sample
+                        block_time = (self.config.poll_interval * self.config.num_data_points_retentation) / (num_blocks + .5)
 
                         prep_data = next(item for item in self.prep_list if
                                          item['apiEndpoint'] == self.resp_non_null[0][i]['apiEndpoint'])
