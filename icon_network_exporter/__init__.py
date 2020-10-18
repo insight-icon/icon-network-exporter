@@ -78,7 +78,7 @@ class Exporter:
         self.gauge_prep_node_block_time = Gauge('icon_prep_node_block_time', 'Time in seconds per block for a node',
                                                 ['name'])
 
-        self.gauge_prep_node_latency = Gauge('gauge_prep_node_latency', 'Time in seconds per for get request to node',
+        self.gauge_prep_node_latency = Gauge('icon_prep_node_latency', 'Time in seconds per for get request to node',
                                                 ['name'])
 
         self.gauge_prep_reference_block_height = Gauge('icon_prep_reference_block_height',
