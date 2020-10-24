@@ -1,8 +1,31 @@
 version: "3.8"
 services:
-  iconexporter:
+  mainnet:
     build: .
     ports:
       - "6100:6100"
     environment:
       network_name: mainnet
+      exporter_port: 6100
+  zicon:
+    build: .
+    ports:
+      - "6101:6101"
+    environment:
+      network_name: zicon
+      exporter_port: 6101
+  #      end_ranking: 0x22 # 34
+  bicon:
+    build: .
+    ports:
+      - "6102:6102"
+    environment:
+      network_name: bicon
+      exporter_port: 6102
+  testnet:
+    build: .
+    ports:
+      - "6103:6103"
+    environment:
+      network_name: testnet
+      exporter_port: 6103
