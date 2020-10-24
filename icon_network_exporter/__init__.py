@@ -14,34 +14,8 @@ from time import sleep, time
 from icon_network_exporter.config import Config
 from icon_network_exporter.exceptions import IconRPCError
 from icon_network_exporter.utils import get_prep_list_async, get_highest_block, get_rpc_attributes
+from icon_network_exporter.rpc import get_preps_rpc
 
-GET_PREPS_RPC = {
-    "jsonrpc": "2.0",
-    "id": 1234,
-    "method": "icx_call",
-    "params": {
-        "to": "cx0000000000000000000000000000000000000000",
-        "dataType": "call",
-        "data": {
-            "method": "getPReps",
-            "params": {
-                "startRanking": "0x1",
-                "endRanking": "0x64"
-            }
-        }
-    }
-}
-
-RPC_URL_MAP = {
-    'mainnet': {
-        'main_api_endpoint': 'https://ctz.solidwallet.io/api/v3',
-        'reference_nodes': [],
-    },
-    'zicon': {
-        'main_api_endpoint': 'https://zicon.net.solidwallet.io/api/v3',
-        'reference_nodes': [],
-    }
-}
 
 STATE_MAP = {
     'BlockGenerate': 0,
@@ -49,8 +23,9 @@ STATE_MAP = {
     'Watch': 2,
     'SubscribeNetwork': 3,
     'BlockSync': 4,
-    'EvaluateNetwork': 5,
-    'InitComponents': 6,
+    'LeaderComplain': 5,
+    'EvaluateNetwork': 6,
+    'InitComponents': 7,
 }
 
 
@@ -58,46 +33,43 @@ class Exporter:
     def __init__(self, config: Config):
 
         self.config = config
-        self.exporter_port = config.exporter_port
-        self.exporter_address = config.exporter_address
-
-        if not self.config.main_api_endpoint:
-            self.config.main_api_endpoint = RPC_URL_MAP[self.config.network_name]['main_api_endpoint']
 
         self.last_processed_block_num = None
         self.last_processed_block_hash = None
 
         self.gauge_prep_node_block_height = Gauge('icon_prep_node_block_height',
                                              'Node block height',
-                                                  ['name'])
+                                                  ['name', 'network_name'])
         self.gauge_prep_node_state = Gauge('icon_prep_node_state', 'Number to indicate node state - ie Vote=1, Watch=2',
-                                           ['name'])
+                                           ['name', 'network_name'])
 
-        self.gauge_prep_node_rank = Gauge('icon_prep_node_rank', 'Rank of the node', ['name', 'address'])
+        self.gauge_prep_node_rank = Gauge('icon_prep_node_rank', 'Rank of the node', ['name', 'network_name'])
 
         self.gauge_prep_node_block_time = Gauge('icon_prep_node_block_time', 'Time in seconds per block for a node',
-                                                ['name'])
+                                                ['name', 'network_name'])
 
         self.gauge_prep_node_latency = Gauge('icon_prep_node_latency', 'Time in seconds per for get request to node',
-                                                ['name'])
+                                                ['name', 'network_name'])
 
         self.gauge_prep_reference_block_height = Gauge('icon_prep_reference_block_height',
-                                                       'Block height of reference node')
+                                                       'Block height of reference node', ['network_name'])
 
         self.gauge_prep_reference_block_time = Gauge('icon_prep_reference_block_time',
-                                                     'Time in seconds per block')
+                                                     'Time in seconds per block', ['network_name'])
 
         self.gauge_total_tx = Gauge('icon_total_tx',
-                                    'Total number of transactions')
+                                    'Total number of transactions', ['network_name'])
 
         self.gauge_total_active_main_preps = Gauge('icon_total_active_main_preps',
-                                                   'Total number of active nodes above rank 22')
+                                                   'Total number of active nodes above rank 22', ['network_name'])
 
         self.gauge_total_active_sub_preps = Gauge('icon_total_active_sub_preps',
-                                                    'Total number of active validators - (Watch / Vote / BlockGenerate)')
+                                                    'Total number of active validators - (Watch / Vote / BlockGenerate)',
+                                                  ['network_name'])
 
         self.gauge_total_inactive_sub_preps = Gauge('icon_total_inactive_sub_preps',
-                                                    'Total number of inactive validators - (nodes off / in blocksync)')
+                                                    'Total number of inactive validators - (nodes off / in blocksync)',
+                                                    ['network_name'])
 
         self.prep_list: list = []
         self.prep_urls: list = []
@@ -105,10 +77,10 @@ class Exporter:
         self.resp: List[List] = []
         self.resp_non_null: List[List] = []
         self.reference_list: List[List] = []
-        print(f"Running on {self.config.network_name} network")
+        print(f"Running on {self.config.network_name.value} network")
 
     def serve_forever(self):
-        start_http_server(6100, self.exporter_address)
+        start_http_server(self.config.exporter_port, self.config.exporter_address)
         stop = [False]
 
         def set_stop(_number, _frame):
@@ -138,13 +110,12 @@ class Exporter:
 
     def get_prep_list(self):
         if self.prep_list_request_counter % self.config.refresh_prep_list_count == 0:
-            self.prep_list = requests.post(self.config.main_api_endpoint, json=GET_PREPS_RPC).json()["result"][
-                "preps"]
-
+            self.prep_list = requests.post(self.config.main_api_endpoint,
+                                           json=get_preps_rpc(self.config.end_ranking)).json()["result"]["preps"]
             for i, v in enumerate(self.prep_list):
                 self.prep_list[i]['apiEndpoint'] = ''.join(
                     ['http://', v['p2pEndpoint'].split(':')[0], ':9000/api/v1/status/peer'])
-                self.gauge_prep_node_rank.labels(v['name'], v['address']).set(i)
+                self.gauge_prep_node_rank.labels(v['name'], self.config.network_name.value).set(i)
         self.prep_list_request_counter += 1
 
     def scrape_metrics(self):
@@ -157,15 +128,15 @@ class Exporter:
         for i in self.resp_non_null[0]:
             if i:
                 name = next(item for item in self.prep_list if item['apiEndpoint'] == i['apiEndpoint'])['name']
-                self.gauge_prep_node_block_height.labels(name).set(i['block_height'])
-                self.gauge_prep_node_latency.labels(name).set(i['latency'])
-                self.gauge_prep_node_state.labels(name).set(STATE_MAP[i['state']])
+                self.gauge_prep_node_block_height.labels(name, self.config.network_name.value).set(i['block_height'])
+                self.gauge_prep_node_latency.labels(name, self.config.network_name.value).set(i['latency'])
+                self.gauge_prep_node_state.labels(name, self.config.network_name.value).set(STATE_MAP[i['state']])
 
 
     def get_active_preps(self):
         active_main_preps = 0
         active_sub_preps = 0
-        for prep in range(0, 99):
+        for prep in range(0, int(self.config.end_ranking, 16)-1):
             state = None
             for i, v in enumerate(self.resp_non_null[0]):
                 if self.prep_list[prep]['apiEndpoint'] == self.resp_non_null[0][i]['apiEndpoint']:
@@ -179,16 +150,16 @@ class Exporter:
                 if STATE_MAP[state] < 3 and prep >= 22:
                     active_sub_preps += 1
 
-        self.gauge_total_active_main_preps.set(active_main_preps)
-        self.gauge_total_active_sub_preps.set(active_sub_preps)
-        self.gauge_total_inactive_sub_preps.set(78 - active_sub_preps)
+        self.gauge_total_active_main_preps.labels(self.config.network_name.value).set(active_main_preps)
+        self.gauge_total_active_sub_preps.labels(self.config.network_name.value).set(active_sub_preps)
+        self.gauge_total_inactive_sub_preps.labels(self.config.network_name.value).set(78 - active_sub_preps)
 
     def get_reference(self):
         # Get reference
         highest_block, self.reference_node_api_endpoint = get_highest_block(self.prep_list, self.resp_non_null[0])
         # reference_node_name = next(item for item in self.resp_non_null[0] if item['apiEndpoint'] == self.reference_node_api_endpoint)[
         #     'apiEndpoint']
-        self.gauge_prep_reference_block_height.set(highest_block)
+        self.gauge_prep_reference_block_height.labels(self.config.network_name.value).set(highest_block)
 
         # self.reference_list.insert(0, get_rpc_attributes())
         # if len(self.reference_list) > self.config.num_data_points_retentation:
@@ -196,7 +167,7 @@ class Exporter:
 
         total_tx = next(item for item in self.resp_non_null[0] if item['apiEndpoint'] == self.reference_node_api_endpoint)['total_tx']
         # Get total TX
-        self.gauge_total_tx.set(total_tx)
+        self.gauge_total_tx.labels(self.config.network_name.value).set(total_tx)
 
 
     def summarize_metrics(self):
@@ -221,10 +192,10 @@ class Exporter:
                         prep_data = next(item for item in self.prep_list if
                                          item['apiEndpoint'] == self.resp_non_null[0][i]['apiEndpoint'])
 
-                        self.gauge_prep_node_block_time.labels(prep_data['name']).set(block_time)
+                        self.gauge_prep_node_block_time.labels(prep_data['name'], self.config.network_name.value).set(block_time)
                         if self.resp_non_null[0][i]['apiEndpoint'] == self.reference_node_api_endpoint:
                             # prep_data['name'], prep_data['address']
-                            self.gauge_prep_reference_block_time.set(block_time)
+                            self.gauge_prep_reference_block_time.labels(self.config.network_name.value).set(block_time)
 
 
 def main():
