@@ -31,7 +31,7 @@ class NetworksEnum(str, Enum):
 
 class Config(BaseSettings):
 
-    network_name: NetworksEnum = NetworksEnum.zicon
+    network_name: NetworksEnum = NetworksEnum.mainnet
     exporter_port: int = 6100
     exporter_address: str = ''
 
